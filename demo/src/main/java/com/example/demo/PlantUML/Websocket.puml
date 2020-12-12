@@ -1,0 +1,83 @@
+@startuml
+package "com.iwhalecloud.oss.inms.fm.websocket.message.process.alarmconverge" {
+    TopicDataProcess -- AlarmListCacheOperator
+    OperCenterClass -- AlarmListCacheOperator
+}
+
+
+package "com.iwhalecloud.oss.inms.fm.websocket.message.process.cache.alarmflow" {
+    AlarmListCacheOperator *-- AlarmListCache
+}
+
+package "com.iwhalecloud.oss.inms.fm.websocket.message.process.cache.alarmsnapshot" {
+    AlarmListSnapShotPool -- AlarmListCacheOperator
+    AlarmListSnapShotPool *-- AlarmListSnapShot
+}
+
+package "com.iwhalecloud.oss.inms.fm.websocket.message.interaction" {
+    FrontEndInteraction -- AlarmListSnapShotPool
+}
+
+Class AlarmListCache {
+    - Map<String, Map> activeAlarmMap
+    - Map<String, Map> ackAlarmMap
+    - Map<String, Map> clearAlarmMap
+}
+note top of AlarmListCache : "流水缓存"
+
+Class AlarmListCacheOperator {
+    AlarmListCache alarmListCache
+    AlarmListSnapShotPool alarmListSnapShotPool
+
+    alarmConverge()
+    updateSnapShots() //更新各个快照缓存
+    alarmAck()
+    alarmClear()
+    alarmForward()
+    ...()
+}
+
+Class TopicDataProcess <<监听处理topic数据>>
+Class OperCenterClass <<操作中心的类>>
+
+Class AlarmListSnapShot {
+    - String snapShotId
+    - int linkNum
+    - String filterInfo
+    - Map<String, Object> kInfo
+    AlarmListCache alarmListCache
+
+    setKInfo()
+    getKInfo()
+    addLinkNum()
+    getLinkNum()
+    setFilterInfoFromRedis()
+    updateActiveAlarmList()
+    updateClearAlarmList()
+    updateAckAlarmList()
+    updateVoiceList()
+}
+note top of AlarmListSnapShot : "单个过滤器对应的快照缓存"
+
+Class AlarmListSnapShotPool {
+    Map<String, AlarmListSnapShot> alarmListSnapShotPool
+
+    applyForSnapShot()
+    releaseSnapShot()
+    getSnapShot()
+    getAllSnapShots():List<AlarmListSnapShot>
+    deleteSnapShot()
+}
+
+Class FrontEndInteraction {
+    Map<String, String> sessionSnapShotIdMap
+    AlarmListSnapShotPool alarmListSnapShotPool
+
+    buildLink()
+    releaseLink()
+    setUpFilter()
+    recordSessionSnapShotMap()
+    updateSessionSnapShotMap()
+    alarmPush()
+}
+@enduml

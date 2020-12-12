@@ -1,0 +1,22 @@
+@startuml
+ interface Machine
+ Machine <|-- Car
+ Driver - Car : drives >
+ Car *-- Wheel : have 4 >
+ Car -- Person : < owns
+
+ Driver : String driverLicence
+ Driver : start()
+ Driver : stop()
+ Driver : {abstract} changeDriverLicenceLevel()
+
+ enum DriverLicence {
+    C1
+    C2
+    C3
+    D
+    F
+ }
+
+
+@enduml
